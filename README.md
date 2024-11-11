@@ -1,165 +1,148 @@
-## Introduction
+# NetEase Music to Spotify Playlist Converter
 
-Have you ever wanted to migrate your carefully curated NetEase Music (网易云音乐) playlist to Spotify? In this README, I'll walk you through a Python solution that helps bridge these two platforms, making your music migration seamless and efficient.
+Convert your NetEase Music (网易云音乐) playlists to Spotify format with proper artist name handling and formatting. This tool helps bridge the gap between Chinese and Western music platforms by:
 
-## The Challenge
+- Converting Chinese artist names to their English equivalents
+- Reformatting song entries for Spotify's import tool
+- Handling multiple artists and special characters
+- Providing pinyin transliteration for non-mapped artists
 
-When migrating playlists between NetEase Music and Spotify, we face several challenges:
+## 🚀 Quick Start
 
-1. **Different Text Formats**: NetEase Music exports songs in "Title - Artist" format, while Spotify's bulk import tool expects "Artist - Title"
-2. **Chinese Artist Names**: Many Chinese artists have both Chinese and English names, making matching difficult
-3. **Encoding Issues**: Handling Chinese characters correctly in text processing
-4. **Multiple Artists**: Proper handling of songs with multiple artists
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/netease-to-spotify
+cd netease-to-spotify
 
-## The Solution Pipeline
+# Install dependencies
+pip install -r requirements.txt
 
-Here's our three-step solution:
-
-1. Extract playlist from NetEase Music using [NetEase2Text](https://music.unmeta.cn/)
-2. Process the text using our Python script
-3. Import the processed list into Spotify using [Spotlistr](https://www.spotlistr.com/search/textbox)
-
-## The Code
-
-Let's break down our Python solution that handles the text processing step:
-
-```python
-from pypinyin import lazy_pinyin, Style
-import re
-
-class SongFormatter:
-    def __init__(self):
-        # Artist name mappings (Chinese to English)
-        self.artist_mapping = {
-            "方大同": "Khalil Fong",
-            "王力宏": "Leehom Wang",
-            "林俊杰": "JJ Lin",
-            # ... more mappings ...
-        }
+# Run the converter
+python song_formatter.py
 ```
 
-### Key Components
+## 📋 Prerequisites
 
-1. **Artist Name Mapping**
-   - We maintain a dictionary of Chinese artist names and their English equivalents
-   - This helps Spotify better match the artists
+- Python 3.6+
+- `pypinyin` package
+- Input text file (`paste.txt`) containing your NetEase Music playlist
 
-```python
-def get_artist_name(self, artist):
-    """Convert artist name to appropriate format"""
-    artist = artist.strip().replace('/', '&')
-    
-    # Handle multiple artists
-    if '&' in artist or ',' in artist:
-        artists = re.split('[&,]', artist)
-        return ' & '.join(self.get_artist_name(a.strip()) for a in artists)
-    
-    # Use predefined English name if available
-    if artist in self.artist_mapping:
-        return self.artist_mapping[artist]
-        
-    # Keep English names as is
-    if self.is_english(artist):
-        return artist
-        
-    # Convert Chinese to pinyin with original text
-    if self.is_chinese(artist):
-        pinyin_name = ' '.join([
-            word.capitalize() 
-            for word in lazy_pinyin(artist, style=Style.NORMAL)
-        ])
-        return f"{artist} ({pinyin_name})"
+## 🔧 Installation
+
+1. Ensure you have Python 3.6+ installed
+2. Install required packages:
+```bash
+pip install pypinyin
 ```
 
-2. **Format Detection**
-   - Detect whether text contains Chinese characters
-   - Handle mixed language content appropriately
+## 📖 How to Use
 
-```python
-def is_chinese(self, text):
-    """Check if the text contains Chinese characters"""
-    return bool(re.search('[\u4e00-\u9fff]', text))
+### Step 1: Extract NetEase Playlist
+1. Visit [NetEase2Text](https://music.unmeta.cn/)
+2. Input your NetEase Music playlist URL
+3. Copy the extracted song list
+4. Save it to `paste.txt` in the project directory
 
-def is_english(self, text):
-    """Check if the text is primarily English"""
-    return len([c for c in text if ord(c) < 128]) / len(text) > 0.9
+### Step 2: Convert Format
+```bash
+python song_formatter.py
 ```
+The formatted list will be saved to `formatted_songs.txt`
 
-3. **Line Processing**
-   - Parse each song entry
-   - Handle potential formatting errors
+### Step 3: Import to Spotify
+1. Go to [Spotlistr](https://www.spotlistr.com/search/textbox)
+2. Paste the contents of `formatted_songs.txt`
+3. Click "Search for Songs"
 
-```python
-def parse_song_line(self, line):
-    """Parse a single line into title and artist"""
-    try:
-        if not line.strip():
-            return None
-        parts = line.strip().split(" - ", 1)
-        if len(parts) != 2:
-            print(f"Warning: Skipping malformed line: {line}")
-            return None
-        return parts[0].strip(), parts[1].strip()
-    except Exception as e:
-        print(f"Error processing line: {line}")
-        return None
-```
+## 🎵 Example
 
-## How to Use
-
-1. **Extract Your Playlist**
-   - Go to [NetEase2Text](https://music.unmeta.cn/)
-   - Input your NetEase Music playlist URL
-   - Copy the extracted song list
-
-2. **Process the List**
-   - Save the copied list to `paste.txt`
-   - Run the Python script:
-   ```bash
-   python song_formatter.py
-   ```
-   - Find the processed list in `formatted_songs.txt`
-
-3. **Import to Spotify**
-   - Go to [Spotlistr](https://www.spotlistr.com/search/textbox)
-   - Paste the contents of `formatted_songs.txt`
-   - Click "Search for Songs"
-
-## Example Results
-
-Before:
+Input (`paste.txt`):
 ```text
 晚婚 (Live) - 谭维维
 Young And Beautiful - Lana Del Rey
 纤维 - 林忆莲
 ```
 
-After:
+Output (`formatted_songs.txt`):
 ```text
 Lana Del Rey - Young And Beautiful
 Sandy Lam - 纤维
 谭维维 (Tan Weiwei) - 晚婚 (Live)
 ```
 
-## Tips for Better Results
+## ⚙️ Configuration
 
-1. **Expand Artist Mappings**: Add more Chinese-English artist name mappings to improve match rates
-2. **Handle Special Cases**: Watch for live versions, remixes, and featuring artists
-3. **Review Results**: Check Spotify's matches and adjust manually if needed
+### Artist Name Mappings
+Add or modify artist name mappings in `song_formatter.py`:
 
-## Limitations and Future Improvements
+```python
+self.artist_mapping = {
+    "方大同": "Khalil Fong",
+    "王力宏": "Leehom Wang",
+    "林俊杰": "JJ Lin",
+    # Add more mappings here
+}
+```
 
-- Not all Chinese songs are available on Spotify
-- Some artist names might need manual adjustment
-- Could add support for more input formats
-- Potential to add direct Spotify API integration
+## 🛠️ Technical Details
 
-## Conclusion
+### Key Features
+- Chinese-English artist name mapping
+- Pinyin conversion for unmapped Chinese names
+- Multiple artist handling
+- Special character cleanup
+- Error handling for malformed entries
 
-This solution significantly streamlines the process of migrating playlists from NetEase Music to Spotify. While it may not be perfect due to platform differences and availability issues, it automates much of the tedious work involved in playlist migration.
+### Class Structure
+```python
+class SongFormatter:
+    def __init__(self)              # Initialize mappings
+    def is_chinese(self, text)      # Detect Chinese characters
+    def is_english(self, text)      # Check for English text
+    def get_artist_name(self, artist) # Process artist names
+    def parse_song_line(self, line)  # Parse individual entries
+    def format_songs(self, text_input) # Main processing function
+```
 
-Feel free to contribute to the project or suggest improvements!
+## 🤝 Contributing
+
+Contributions are welcome! Here's how you can help:
+
+1. Fork the repository
+2. Create a new branch (`git checkout -b feature/improvement`)
+3. Make your changes
+4. Commit (`git commit -am 'Add new feature'`)
+5. Push (`git push origin feature/improvement`)
+6. Create a Pull Request
+
+### Areas for Improvement
+- Add more artist name mappings
+- Improve special character handling
+- Add direct Spotify API integration
+- Support more input formats
+- Add batch processing capability
+
+## 🐛 Known Issues
+
+- Some Chinese songs might not be available on Spotify
+- Artist name matches might need manual verification
+- Special characters in song titles may affect matching
+
+## 📜 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- [NetEase2Text](https://music.unmeta.cn/) for playlist extraction
+- [Spotlistr](https://www.spotlistr.com/) for Spotify import functionality
+- [pypinyin](https://github.com/mozillazg/python-pinyin) for Chinese character conversion
+
+## 📬 Contact
+
+- Create an issue for bug reports or feature requests
+- Pull requests are welcome
 
 ---
 
-*Note: Remember to handle your music platform credentials securely and respect platform-specific terms of service when migrating content.*
+*Note: This tool is not affiliated with NetEase Music or Spotify. Use responsibly and in accordance with the platforms' terms of service.*
